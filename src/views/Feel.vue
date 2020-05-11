@@ -5,13 +5,13 @@
     <v-btn color="primary" dark class="mr-2" @click="generarGrafico(3)">Mes</v-btn>
     <v-btn color="primary" dark class="mr-2" @click="generarGrafico(2)">Día</v-btn>
     <v-btn color="primary" dark class="mr-2" @click="generarGrafico(1)">Últimas 20 anotaciones</v-btn>
-    
+
   <v-card class="mt-4 mx-auto">
     <v-sheet color="cyan">
       <v-sparkline
         :value="value"
         :labels="labels"
-        label-size="4"
+        label-size="3"
         color="white"
         line-width="1"
         padding="10"
@@ -218,14 +218,14 @@
 
           case 1:
 
-            for (let i = this.feels.length-20; i <= this.feels.length-1; i++) {
+            for (let i = this.feels.length-21; i <= this.feels.length-1; i++) {
               let diaNombre = ''
               let diaPrint = ''
               let dia = this.feels[i].date.substring(8, 10)
               let hora = this.feels[i].date.substring(11, 13)
               let min = this.feels[i].date.substring(14, 16)
               dia === '10' ? diaNombre = 'Dom' : dia === '11' ? diaNombre = 'Lun' : null
-              diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${diaNombre}-${hora}:${min}`, diaTemp = dia]
+              diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${diaNombre}/${hora}:${min}`, diaTemp = dia]
               this.grafico.push({ date: diaPrint, feel: this.feels[i].feel})
             }
 
