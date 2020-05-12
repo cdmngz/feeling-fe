@@ -12,7 +12,6 @@
         <v-switch class="ms-3" v-model="ayer" @click="obtenerGrafico1(1,0,0)" label="Ayer"></v-switch>
         <v-switch class="ms-3" v-model="sempas" @click="obtenerGrafico2(7,0,0)" label="La semana pasada"></v-switch>
         <v-switch class="ms-3" v-model="mespas" @click="obtenerGrafico3(0,1,0)" label="El mes pasado"></v-switch>
-        <v-switch class="ms-3" v-model="aniopas" @click="obtenerGrafico4(0,0,1)" label="El año pasado"></v-switch>
       </v-row>
       <v-sparkline
         :value="value"
@@ -51,17 +50,6 @@
         :value="value3"
         :labels="labels3"
         color="#FF0"
-        height="30"
-        label-size="3"
-        line-width="0.5"
-        padding="10"
-        smooth="0"
-      ></v-sparkline>
-      <v-sparkline
-        v-show="aniopas"
-        :value="value4"
-        :labels="labels4"
-        color="#212629"
         height="30"
         label-size="3"
         line-width="0.5"
@@ -155,7 +143,6 @@
       grafico1: [],
       grafico2: [],
       grafico3: [],
-      grafico4: [],
       headers: [
         {
           text: 'Fecha',
@@ -172,9 +159,7 @@
       defaultItem: {
         feel: 0,
         plus: ''
-      },
-      value4: [],
-      labels4: [],
+      }
     }),
     computed: {
       formTitle () {
