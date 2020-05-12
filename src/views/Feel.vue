@@ -7,24 +7,74 @@
     <v-btn color="primary" dark class="mr-2" @click="generarGrafico(1)">Últimas 20 anotaciones</v-btn>
 
   <v-card class="mt-4 mx-auto">
-    <v-sheet color="cyan">
+    <v-sheet color="cyan" justify="space-around">
+      <v-row v-show="labels.length > 0" justify="space-around">
+        <v-switch class="ms-3" v-model="ayer" @click="obtenerGrafico1(1,0,0)" label="Ayer"></v-switch>
+        <v-switch class="ms-3" v-model="sempas" @click="obtenerGrafico2(7,0,0)" label="La semana pasada"></v-switch>
+        <v-switch class="ms-3" v-model="mespas" @click="obtenerGrafico3(0,1,0)" label="El mes pasado"></v-switch>
+        <v-switch class="ms-3" v-model="aniopas" @click="obtenerGrafico4(0,0,1)" label="El año pasado"></v-switch>
+      </v-row>
       <v-sparkline
         :value="value"
         :labels="labels"
-        label-size="3"
         color="white"
-        line-width="1"
+        height="30"
+        label-size="3"
+        line-width="0.5"
         padding="10"
-        smooth="1"
+        smooth="0"
       ></v-sparkline>
-
+      <v-sparkline
+        v-show="ayer"
+        :value="value1"
+        :labels="labels1"
+        color="#00F"
+        height="30"
+        label-size="3"
+        line-width="0.5"
+        padding="10"
+        smooth="0"
+      ></v-sparkline>
+      <v-sparkline
+        v-show="sempas"
+        :value="value2"
+        :labels="labels2"
+        color="#9F9"
+        height="30"
+        label-size="3"
+        line-width="0.5"
+        padding="10"
+        smooth="0"
+      ></v-sparkline>
+      <v-sparkline
+        v-show="mespas"
+        :value="value3"
+        :labels="labels3"
+        color="#FF0"
+        height="30"
+        label-size="3"
+        line-width="0.5"
+        padding="10"
+        smooth="0"
+      ></v-sparkline>
+      <v-sparkline
+        v-show="aniopas"
+        :value="value4"
+        :labels="labels4"
+        color="#212629"
+        height="30"
+        label-size="3"
+        line-width="0.5"
+        padding="10"
+        smooth="0"
+      ></v-sparkline>
     </v-sheet>
   </v-card>
 
   <v-data-table
     :headers="headers"
     :items="feels"
-    :items-per-page="15"
+    :items-per-page="10"
     sort-by="date"
     :sort-desc="true"
     class="elevation-1 mt-5"
@@ -95,9 +145,17 @@
 <script>
   export default {
     data: () => ({
+      ayer: false,
+      sempas: false,
+      mespas: false,
+      aniopas: false,
       feels: [],
       dialog: false,
       grafico: [],
+      grafico1: [],
+      grafico2: [],
+      grafico3: [],
+      grafico4: [],
       headers: [
         {
           text: 'Fecha',
@@ -115,33 +173,36 @@
         feel: 0,
         plus: ''
       },
+      value4: [],
+      labels4: [],
     }),
     computed: {
       formTitle () {
         return this.editedIndex === -1 ? 'Añadir Feel' : 'Editar Feel'
       },
       value () {
-        let temp = []
-        this.grafico.forEach(element => {
-          temp.push(element.feel)
-        })
-        return temp
+        return this.grafico.map(element => element.feel)
       },
       labels () {
-        let temp = []
-        //let diaTemp
-        this.grafico.forEach(element => {
-          temp.push(element.date)
-          //let anio = element.date.substring(2, 4) 
-          //let mes = element.date.substring(5, 7)
-          //let dia = element.date.substring(8, 10)
-          //let hora = element.date.substring(11, 13)
-          //let min = element.date.substring(14, 16)
-          //mes === '05' ? mes = 'May' : null
-          //dia === '10' ? dia = 'Dom' : dia === '11' ? dia = 'Lun' : null
-          //diaTemp === dia ? temp.push(hora+':'+min) : [temp.push(dia+'/'+hora), diaTemp = dia]
-        })
-        return temp
+        return this.grafico.map(element => element.date)
+      },
+      value1 () {
+        return this.grafico1.map(element => element.feel)
+      },
+      labels1 () {
+        return this.grafico1.map(element => element.date)
+      },
+      value2 () {
+        return this.grafico2.map(element => element.feel)
+      },
+      labels2 () {
+        return this.grafico2.map(element => element.date)
+      },
+      value3 () {
+        return this.grafico3.map(element => element.feel)
+      },
+      labels3 () {
+        return this.grafico3.map(element => element.date)
       }
     },
     watch: {
@@ -171,11 +232,7 @@
         const indexArray = this.feels.indexOf(item)
         const indexDb = item._id
         confirm('Eliminar definitivamente?') && this.axios.delete(`/feel/${indexDb}`)
-        .then(res => {
-          console.log(indexDb)
-          console.log(res.data)
-          this.feels.splice(indexArray, 1)
-        })
+        .then(this.feels.splice(indexArray, 1))
         .catch(e => {
           console.log(e.response)
         })
@@ -208,24 +265,101 @@
         }
         this.close()
       },
+      obtenerGrafico1(diaRestar, mesRestar, anioRestar) {
+        this.grafico1 = []
+        let dia = new Date().getDate()-diaRestar
+        dia < 1 ? dia+=30 : null
+        let mes = new Date().getMonth()-mesRestar+1
+        let anio = new Date().getFullYear()-anioRestar
+        console.log(dia, mes, anio)
+
+        let temp = this.feels.filter(element => element.date.substring(8, 10) == dia)
+            
+        for (let i = 0; i < 24; i++) {
+          let sum = 0
+          let cont = 0
+          let prom = 0
+          for (let j = 0; j < temp.length; j++) {
+            let hora = temp[j].date.substring(11, 13)
+            if(i == hora) {
+              sum += temp[j].feel
+              cont++
+            }
+          }
+          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
+          i < 10 ? i = '0'+i : null;
+          this.grafico1.push({ date: i, feel: prom })
+        }
+      },
+      obtenerGrafico2(diaRestar, mesRestar, anioRestar) {
+        this.grafico2 = []
+        let dia = new Date().getDate()-diaRestar
+        dia < 1 ? dia+=30 : null
+        let mes = new Date().getMonth()-mesRestar+1
+        let anio = new Date().getFullYear()-anioRestar
+        console.log(dia, mes, anio)
+
+        let temp = this.feels.filter(element => element.date.substring(8, 10) == dia)
+            
+        for (let i = 0; i < 24; i++) {
+          let sum = 0
+          let cont = 0
+          let prom = 0
+          for (let j = 0; j < temp.length; j++) {
+            let hora = temp[j].date.substring(11, 13)
+            if(i == hora) {
+              sum += temp[j].feel
+              cont++
+            }
+          }
+          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
+          i < 10 ? i = '0'+i : null;
+          this.grafico2.push({ date: i, feel: prom })
+        }
+      },
+      obtenerGrafico3(diaRestar, mesRestar, anioRestar) {
+        this.grafico3 = []
+        let dia = new Date().getDate()-diaRestar
+        dia < 1 ? dia+=30 : null
+        let mes = new Date().getMonth()-mesRestar+1
+        let anio = new Date().getFullYear()-anioRestar
+        console.log(dia, mes, anio)
+
+        let temp = this.feels.filter(element => element.date.substring(8, 10) == dia && element.date.substring(5, 7) == mes)
+            
+        for (let i = 0; i < 24; i++) {
+          let sum = 0
+          let cont = 0
+          let prom = 0
+          for (let j = 0; j < temp.length; j++) {
+            let hora = temp[j].date.substring(11, 13)
+            if(i == hora) {
+              sum += temp[j].feel
+              cont++
+            }
+          }
+          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
+          i < 10 ? i = '0'+i : null;
+          this.grafico3.push({ date: i, feel: prom })
+        }
+      },
       generarGrafico(key) {
         this.grafico = []
         let date = new Date()
-        let temp = []
         let diaTemp = ''
+        let temp = []
 
         switch (key) {
 
           case 1:
 
             for (let i = this.feels.length-21; i <= this.feels.length-1; i++) {
-              let diaNombre = ''
               let diaPrint = ''
+              let mes = this.feels[i].date.substring(5, 7)
               let dia = this.feels[i].date.substring(8, 10)
               let hora = this.feels[i].date.substring(11, 13)
               let min = this.feels[i].date.substring(14, 16)
-              dia === '10' ? diaNombre = 'Dom' : dia === '11' ? diaNombre = 'Lun' : null
-              diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${diaNombre}/${hora}:${min}`, diaTemp = dia]
+              diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${dia}/${mes}-${hora}:${min}`, diaTemp = dia]
               this.grafico.push({ date: diaPrint, feel: this.feels[i].feel})
             }
 
@@ -233,19 +367,12 @@
           
           case 2:
 
-            for (let i = this.feels.length-1; i > 0 ; i--) {
-              let dia = this.feels[i].date.substring(8, 10)
-              if(dia==date.getDate()) {
-                temp.push(this.feels[i])
-              }
-            }
-
-            temp.reverse()
+            temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate())
             
             for (let i = 0; i < 24; i++) {
               let sum = 0
               let cont = 0
-              let date = 0
+              let prom = 0
               for (let j = 0; j < temp.length; j++) {
                 let hora = temp[j].date.substring(11, 13)
                 if(i == hora) {
@@ -253,26 +380,17 @@
                   cont++
                 }
               }
-              let prom = 0
-              cont != 0 ? prom = parseInt(sum/cont, 10) : null
-              i<10 ? date = '0'+i : date = i
-              this.grafico.push({ date: date, feel: prom })
+              cont != 0 ? prom = parseInt(sum/cont, 10) : null;
+              i < 10 ? i = '0'+i : null;
+              this.grafico.push({ date: i, feel: prom })
             }
 
             break
             
             case 3:
 
-            for (let i = this.feels.length-1; i > 0 ; i--) {
-              let mes = this.feels[i].date.substring(5, 7)
-              if(mes==date.getMonth()+1) {
-                temp.push(this.feels[i])
-              } else {
-                break;
-              }
-            }
-            temp.reverse()
-            
+            temp = this.feels.filter(element => element.date.substring(5, 7) == date.getMonth()+1)
+
             for (let i = 1; i <= 31; i++) {
               let sum = 0
               let cont = 0
@@ -290,14 +408,9 @@
             break
 
             case 4:
-            for (let i = this.feels.length-1; i > 0 ; i--) {
-              let mes = this.feels[i].date.substring(5, 7)
-              if(mes==date.getMonth()+1) {
-                temp.push(this.feels[i])
-              }
-            }
-            temp.reverse()
-            
+
+            temp = this.feels.filter(element => element.date.substring(5, 7) == date.getMonth()+1)
+
             for (let i = 1; i <= 12; i++) {
               let sum = 0
               let cont = 0
@@ -315,7 +428,7 @@
             break
 
           default:
-            break;
+          break;
         }
       }
     }
