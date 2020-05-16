@@ -1,16 +1,19 @@
 <template>
-  <div class="container">
-    <h1>About visteh</h1>
-      <HelloWorld/>
-  </div>
+<v-container>
+
+  <h1>Verbos:</h1>
+
+  <v-btn class="mr-5 mt-5" v-for="(verb, index) of verbs" :key="index">{{verb}}</v-btn>
+  <v-btn class="mr-5 mt-5" @click="verbs.push('sdf')">+</v-btn>
+
+</v-container>
 </template>
 
 <script>
-import HelloWorld from '@/components/HelloWorld.vue'
-
 export default {
-  components: {
-    HelloWorld
-  }
+  name: 'Verbs',
+  data: () => ({
+    verbs: ['Ejercitarse', 'Programar', 'Amistades', 'Cañas', 'Comida']
+  })
 }
 </script>

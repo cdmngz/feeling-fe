@@ -1,23 +1,23 @@
 <template>
 <v-container>
 
-    <v-btn color="primary" dark class="mr-2" @click="generarGrafico(4)">Año</v-btn>
-    <v-btn color="primary" dark class="mr-2" @click="generarGrafico(3)">Mes</v-btn>
-    <v-btn color="primary" dark class="mr-2" @click="generarGrafico(2)">Día</v-btn>
-    <v-btn color="primary" dark class="mr-2" @click="generarGrafico(1)">Últimas 20 anotaciones</v-btn>
+    <v-btn color="primary" class="mr-2" @click="generarGrafico(4)">Año</v-btn>
+    <v-btn color="primary" class="mr-2" @click="generarGrafico(3)">Mes</v-btn>
+    <v-btn color="primary" class="mr-2" @click="generarGrafico(2)">Día</v-btn>
+    <v-btn color="primary" class="mr-2" @click="generarGrafico(1)">Últimas 20 anotaciones</v-btn>
 
   <v-card class="mt-4 mx-auto">
     <v-sheet color="cyan" justify="space-around">
-      <v-row v-show="labels.length > 0" justify="space-around">
-        <v-switch class="ms-3" v-model="ayer" @click="obtenerGrafico1(1,0,0)" label="Ayer"></v-switch>
-        <v-switch class="ms-3" v-model="sempas" @click="obtenerGrafico2(7,0,0)" label="La semana pasada"></v-switch>
-        <v-switch class="ms-3" v-model="mespas" @click="obtenerGrafico3(0,1,0)" label="El mes pasado"></v-switch>
+      <v-row v-show="navGrafico===2" justify="space-around">
+        <v-switch class="ms-3" v-model="ayer" @click="obtenerGrafico1()" label="Ayer"></v-switch>
+        <v-switch class="ms-3" v-model="sempas" @click="obtenerGrafico2()" label="La semana pasada"></v-switch>
+        <v-switch class="ms-3" v-model="mespas" @click="obtenerGrafico3()" label="El mes pasado"></v-switch>
       </v-row>
       <v-sparkline
         :value="value"
         :labels="labels"
         color="white"
-        height="30"
+        height="40"
         label-size="3"
         line-width="0.5"
         padding="10"
@@ -28,7 +28,7 @@
         :value="value1"
         :labels="labels1"
         color="#00F"
-        height="30"
+        height="40"
         label-size="3"
         line-width="0.5"
         padding="10"
@@ -39,7 +39,7 @@
         :value="value2"
         :labels="labels2"
         color="#9F9"
-        height="30"
+        height="40"
         label-size="3"
         line-width="0.5"
         padding="10"
@@ -50,7 +50,7 @@
         :value="value3"
         :labels="labels3"
         color="#FF0"
-        height="30"
+        height="40"
         label-size="3"
         line-width="0.5"
         padding="10"
@@ -69,7 +69,7 @@
   > 
     <template v-slot:top>
       <v-toolbar flat color="white">
-        <v-toolbar-title>Hay tabla</v-toolbar-title>
+        <v-toolbar-title @click="funfun(0,24,11,13)">Hay tabla</v-toolbar-title>
         <v-divider
           class="mx-4"
           inset
@@ -89,10 +89,10 @@
               <v-container>
                 <v-row>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field type="number" min="1" max="10" v-model="editedItem.feel" label="Feel"></v-text-field>
+                    <v-text-field type="number" min="1" max="10" v-model="editedItem.feel" label="Feel" autofocus></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.plus" label="Plus"></v-text-field>
+                    <v-text-field v-model="editedItem.plus" label="Plus" @keyup.enter="save"></v-text-field>
                   </v-col>
                 </v-row>
               </v-container>
@@ -133,6 +133,7 @@
 <script>
   export default {
     data: () => ({
+      navGrafico: Number,
       ayer: false,
       sempas: false,
       mespas: false,
@@ -151,13 +152,14 @@
           value: 'date',
         },
         { text: 'Feel', value: 'feel' },
-        { text: 'Data adicional', value: 'plus' },
+        { text: 'Descripción', value: 'plus' },
+        { text: 'Verbo', array: 'verb' },
         { text: 'Acciones', value: 'actions', sortable: false },
       ],
       editedIndex: -1,
       editedItem: {},
       defaultItem: {
-        feel: 0,
+        feel: Number,
         plus: ''
       }
     }),
@@ -250,89 +252,42 @@
         }
         this.close()
       },
-      obtenerGrafico1(diaRestar, mesRestar, anioRestar) {
+      obtenerGrafico1() {
         this.grafico1 = []
-        let dia = new Date().getDate()-diaRestar
-        dia < 1 ? dia+=30 : null
-        let mes = new Date().getMonth()-mesRestar+1
-        let anio = new Date().getFullYear()-anioRestar
-        console.log(dia, mes, anio)
+        let date = new Date()
+        date.setDate(date.getDate()-1)
 
-        let temp = this.feels.filter(element => element.date.substring(8, 10) == dia)
-            
-        for (let i = 0; i < 24; i++) {
-          let sum = 0
-          let cont = 0
-          let prom = 0
-          for (let j = 0; j < temp.length; j++) {
-            let hora = temp[j].date.substring(11, 13)
-            if(i == hora) {
-              sum += temp[j].feel
-              cont++
-            }
-          }
-          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
-          i < 10 ? i = '0'+i : null;
-          this.grafico1.push({ date: i, feel: prom })
-        }
+        let temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate())
+
+        Object.assign(this.grafico1, this.funfun(0, 23, 11, 13, temp))
       },
-      obtenerGrafico2(diaRestar, mesRestar, anioRestar) {
+      obtenerGrafico2() {
         this.grafico2 = []
-        let dia = new Date().getDate()-diaRestar
-        dia < 1 ? dia+=30 : null
-        let mes = new Date().getMonth()-mesRestar+1
-        let anio = new Date().getFullYear()-anioRestar
-        console.log(dia, mes, anio)
+        let date = new Date()
+        date.setDate(date.getDate()-7)
 
-        let temp = this.feels.filter(element => element.date.substring(8, 10) == dia)
-            
-        for (let i = 0; i < 24; i++) {
-          let sum = 0
-          let cont = 0
-          let prom = 0
-          for (let j = 0; j < temp.length; j++) {
-            let hora = temp[j].date.substring(11, 13)
-            if(i == hora) {
-              sum += temp[j].feel
-              cont++
-            }
-          }
-          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
-          i < 10 ? i = '0'+i : null;
-          this.grafico2.push({ date: i, feel: prom })
-        }
+        let temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate())
+
+        Object.assign(this.grafico2, this.funfun(0, 23, 11, 13, temp))
+
       },
-      obtenerGrafico3(diaRestar, mesRestar, anioRestar) {
+      obtenerGrafico3() {
         this.grafico3 = []
-        let dia = new Date().getDate()-diaRestar
-        dia < 1 ? dia+=30 : null
-        let mes = new Date().getMonth()-mesRestar+1
-        let anio = new Date().getFullYear()-anioRestar
-        console.log(dia, mes, anio)
+        let date = new Date()
+        date.setMonth(date.getMonth()-1)
 
-        let temp = this.feels.filter(element => element.date.substring(8, 10) == dia && element.date.substring(5, 7) == mes)
-            
-        for (let i = 0; i < 24; i++) {
-          let sum = 0
-          let cont = 0
-          let prom = 0
-          for (let j = 0; j < temp.length; j++) {
-            let hora = temp[j].date.substring(11, 13)
-            if(i == hora) {
-              sum += temp[j].feel
-              cont++
-            }
-          }
-          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
-          i < 10 ? i = '0'+i : null;
-          this.grafico3.push({ date: i, feel: prom })
-        }
+        let temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate() && element.date.substring(5, 7) == date.getMonth())
+        
+        Object.assign(this.grafico3, this.funfun(0, 23, 11, 13, temp))
+        
       },
       generarGrafico(key) {
+        this.navGrafico = key
         this.grafico = []
-        let date = new Date()
         let diaTemp = ''
         let temp = []
+
+        key!==2 ? [this.ayer=false, this.mespas=false, this.sempas=false] : null
 
         switch (key) {
 
@@ -344,7 +299,7 @@
               let dia = this.feels[i].date.substring(8, 10)
               let hora = this.feels[i].date.substring(11, 13)
               let min = this.feels[i].date.substring(14, 16)
-              diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${dia}/${mes}-${hora}:${min}`, diaTemp = dia]
+              diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${dia}/${mes}-${hora}hs`, diaTemp = dia]
               this.grafico.push({ date: diaPrint, feel: this.feels[i].feel})
             }
 
@@ -352,69 +307,47 @@
           
           case 2:
 
-            temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate())
-            
-            for (let i = 0; i < 24; i++) {
-              let sum = 0
-              let cont = 0
-              let prom = 0
-              for (let j = 0; j < temp.length; j++) {
-                let hora = temp[j].date.substring(11, 13)
-                if(i == hora) {
-                  sum += temp[j].feel
-                  cont++
-                }
-              }
-              cont != 0 ? prom = parseInt(sum/cont, 10) : null;
-              i < 10 ? i = '0'+i : null;
-              this.grafico.push({ date: i, feel: prom })
-            }
+            temp = this.feels.filter(element => element.date.substring(8, 10) == new Date().getDate())
+            Object.assign(this.grafico, this.funfun(0, 23, 11, 13, temp))
 
             break
             
             case 3:
+              
+            temp = this.feels.filter(element => element.date.substring(5, 7) == new Date().getMonth()+1)
+            Object.assign(this.grafico, this.funfun(1, 31, 8, 10, temp))
 
-            temp = this.feels.filter(element => element.date.substring(5, 7) == date.getMonth()+1)
-
-            for (let i = 1; i <= 31; i++) {
-              let sum = 0
-              let cont = 0
-              for (let j = 0; j < temp.length; j++) {
-                let dia = temp[j].date.substring(8, 10)
-                if(i == dia) {
-                  sum += temp[j].feel
-                  cont++
-                }
-              }
-              let prom = 0
-              cont != 0 ? prom = parseInt(sum/cont, 10) : null
-              this.grafico.push({ date: i, feel: prom })
-            }
             break
 
             case 4:
+              
+            temp = this.feels.filter(element => element.date.substring(5, 7) == new Date().getMonth()+1)
+            Object.assign(this.grafico, this.funfun(1, 12, 5, 7, temp))
 
-            temp = this.feels.filter(element => element.date.substring(5, 7) == date.getMonth()+1)
-
-            for (let i = 1; i <= 12; i++) {
-              let sum = 0
-              let cont = 0
-              for (let j = 0; j < temp.length; j++) {
-                let mes = temp[j].date.substring(5, 7)
-                if(i == mes) {
-                  sum += temp[j].feel
-                  cont++
-                }
-              }
-              let prom = 0
-              cont != 0 ? prom = parseInt(sum/cont, 10) : null
-              this.grafico.push({ date: i, feel: prom })
-            }
             break
 
           default:
           break;
         }
+      },
+      funfun(start, final, subI, subF, temp) {
+        let jiji = []
+
+        for (let i = start; i <= final; i++) {
+          let sum = 0
+          let cont = 0
+          for (let j = 0; j < temp.length; j++) {
+            if(i == temp[j].date.substring(subI, subF)) {
+              sum += temp[j].feel
+              cont++
+            }
+          }
+          let prom = 0
+          cont != 0 ? prom = parseInt(sum/cont, 10) : null;
+          i < 10 ? i = '0'+i : null;
+          jiji.push({ date: i, feel: prom })
+        }
+        return jiji
       }
     }
   }

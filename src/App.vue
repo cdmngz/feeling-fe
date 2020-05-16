@@ -10,17 +10,17 @@
           alt="Vuetify Logo"
           class="shrink mr-2"
           contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+          src="@/assets/Windows.svg"
           transition="scale-transition"
           width="40"
         />
 
       </div>
 
-      <h3 class="mr-5">Aquí estamos en app.vue</h3>
+      <h3 class="mr-5">Feels</h3>
 
       <router-link class="white--text mx-2" to="/">Home</router-link> |
-      <router-link class="white--text mx-2" to="/about">About</router-link> |
+      <router-link class="white--text mx-2" to="/about">Verbos</router-link> |
       <router-link class="white--text mx-2" to="/feel">Feels</router-link>
 
       <v-spacer></v-spacer>
