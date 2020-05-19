@@ -1,19 +1,19 @@
 <template>
-<v-container>
+  <v-container>
 
   <h1>Verbos:</h1>
 
-  <v-btn class="mr-5 mt-5" v-for="(verb, index) of verbs" :key="index">{{verb}}</v-btn>
-  <v-btn class="mr-5 mt-5" @click="verbs.push('sdf')">+</v-btn>
+  <v-btn class="mr-5 mt-5" v-for="(verb, index) of tareas" :key="index">{{verb}}</v-btn>
 
-</v-container>
+  </v-container>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
-  name: 'Verbs',
-  data: () => ({
-    verbs: ['Ejercitarse', 'Programar', 'Amistades', 'Cañas', 'Comida']
-  })
+  computed: {
+    ...mapState(['tareas'])
+  }
 }
 </script>

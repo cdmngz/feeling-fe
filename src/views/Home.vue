@@ -1,42 +1,87 @@
 <template>
   <v-container>
 
+    <v-btn @click="createChart('canvas-chart', patriarca)">Cargar datos</v-btn>
 
-    <div class="m-5" v-for="hoy of today" :key="hoy._id">{{hoy.feel}}</div>
-    <h2 class="mt-4">Ayer estuviste con emociones entre {{maxFeel}} y {{minHour}}.</h2>
-    <h4 class="mt-4">Tu emoción más alta fue a las {{maxHour}}hs, con la descripción {{maxDescrip}}.</h4>
+    <v-card class="mt-7 pa-3">
+      <canvas id="canvas-chart"></canvas>
+    </v-card>
+
+    <h5 v-for="(item, index) of today" :key="index">{{item.date}} - {{item.feel}} - {{item.plus}}</h5>
 
   </v-container>
 </template>
 
 <script>
+  import Chart from 'chart.js';
 
 export default {
   data: () => ({
-    today: Array
-  }),
-  created () {
-    this.lsFeels()
-  },
-  computed: {
-    maxHour() {
-      return this.today[0].date.substring(11, 13)
-    },
-    maxFeel() {
-      return this.today[0].feel
-    },
-    minHour() {
-      return this.today[3].feel
-    },
-    maxDescrip() {
-      return this.today[0].plus
+    i: 0,
+    today: [],
+    patriarca: {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Hoy',
+              data: [],
+              backgroundColor: [
+                'rgba(54,73,93,.3)'
+              ],
+              borderColor: [
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+                '#36495d',
+              ],
+              borderWidth: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          responsiveAnimationDuration: 0,
+          lineTension: 1,
+          aspectRatio: 4,
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero: true,
+                padding: 25,
+              }
+            }]
+          }
+        }
     }
-  },
+  }),
   methods: {
-    lsFeels() {
-      this.axios.get('/today')
+    async createChart(chartId, chartData) {
+      await this.dope()
+      const ctx = await document.getElementById(chartId);
+      const myChart = await new Chart(ctx, {
+        type: chartData.type,
+        data: chartData.data,
+        options: chartData.options,
+        myChart: myChart
+      });
+    },
+    async dope() {
+      await this.axios.get('/feel')
         .then(res => {
           this.today = res.data
+          this.today.forEach(element => {
+            this.patriarca.data.labels.push(element.date.substring(0,10))
+            this.patriarca.data.datasets[this.i].data.push(element.feel)
+          })
+          this.i++
         })
         .catch(e => {
           console.log(e.response)

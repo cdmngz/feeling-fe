@@ -1,63 +1,20 @@
 <template>
 <v-container>
 
-    <v-btn color="primary" class="mr-2" @click="generarGrafico(4)">Año</v-btn>
-    <v-btn color="primary" class="mr-2" @click="generarGrafico(3)">Mes</v-btn>
-    <v-btn color="primary" class="mr-2" @click="generarGrafico(2)">Día</v-btn>
-    <v-btn color="primary" class="mr-2" @click="generarGrafico(1)">Últimas 20 anotaciones</v-btn>
+  <v-layout>
+    <v-btn color="primary" class="mr-4" @click="generarGrafico(4)">Año</v-btn>
+    <v-btn color="primary" class="mr-4" @click="generarGrafico(3)">Mes</v-btn>
+    <v-btn color="primary" class="mr-4" @click="generarGrafico(2)">Día</v-btn>
+    <v-btn color="primary" class="mr-4" @click="generarGrafico(1)">últimos</v-btn>
+  </v-layout>
 
-  <v-card class="mt-4 mx-auto">
-    <v-sheet color="cyan" justify="space-around">
-      <v-row v-show="navGrafico===2" justify="space-around">
-        <v-switch class="ms-3" v-model="ayer" @click="obtenerGrafico1()" label="Ayer"></v-switch>
-        <v-switch class="ms-3" v-model="sempas" @click="obtenerGrafico2()" label="La semana pasada"></v-switch>
-        <v-switch class="ms-3" v-model="mespas" @click="obtenerGrafico3()" label="El mes pasado"></v-switch>
-      </v-row>
-      <v-sparkline
-        :value="value"
-        :labels="labels"
-        color="white"
-        height="40"
-        label-size="3"
-        line-width="0.5"
-        padding="10"
-        smooth="0"
-      ></v-sparkline>
-      <v-sparkline
-        v-show="ayer"
-        :value="value1"
-        :labels="labels1"
-        color="#00F"
-        height="40"
-        label-size="3"
-        line-width="0.5"
-        padding="10"
-        smooth="0"
-      ></v-sparkline>
-      <v-sparkline
-        v-show="sempas"
-        :value="value2"
-        :labels="labels2"
-        color="#9F9"
-        height="40"
-        label-size="3"
-        line-width="0.5"
-        padding="10"
-        smooth="0"
-      ></v-sparkline>
-      <v-sparkline
-        v-show="mespas"
-        :value="value3"
-        :labels="labels3"
-        color="#FF0"
-        height="40"
-        label-size="3"
-        line-width="0.5"
-        padding="10"
-        smooth="0"
-      ></v-sparkline>
-    </v-sheet>
-  </v-card>
+  <v-layout class="mt-4" v-show="navGrafico!=0">
+    <v-flex xs12>
+      <v-card class="pa-xs-2 pa-sm-6">
+        <canvas id="canvas-chart"></canvas>
+      </v-card>
+    </v-flex>
+  </v-layout>
 
   <v-data-table
     :headers="headers"
@@ -69,17 +26,23 @@
   > 
     <template v-slot:top>
       <v-toolbar flat color="white">
-        <v-toolbar-title @click="funfun(0,24,11,13)">Hay tabla</v-toolbar-title>
+        
+        <v-toolbar-title>Hay tabla</v-toolbar-title>
+
         <v-divider
           class="mx-4"
           inset
           vertical
         ></v-divider>
+
         <v-spacer></v-spacer>
+
         <v-dialog v-model="dialog" max-width="500px">
+
           <template v-slot:activator="{ on }">
             <v-btn color="primary" dark class="mb-2" v-on="on">Añadir</v-btn>
           </template>
+
           <v-card>
             <v-card-title>
               <span class="headline">{{ formTitle }}</span>
@@ -88,12 +51,15 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field type="number" min="1" max="10" v-model="editedItem.feel" label="Feel" autofocus></v-text-field>
+                  <v-col cols="12" sm="3">
+                    <v-text-field type="number" min="1" max="10" v-model="editedItem.feel" label="1-10" autofocus></v-text-field>
                   </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.plus" label="Plus" @keyup.enter="save"></v-text-field>
+                  <v-col cols="12" sm="9">
+                    <v-text-field v-model="editedItem.plus" label="Descripción" @keyup.enter="save"></v-text-field>
                   </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" xs="6" sm="4" v-for="(item, index) of tareas" :key="index"><v-switch :label="item"></v-switch></v-col>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -131,19 +97,56 @@
 </template>
 
 <script>
+  import Chart from 'chart.js';
+  import { mapState } from 'vuex'
+
   export default {
     data: () => ({
-      navGrafico: Number,
-      ayer: false,
-      sempas: false,
-      mespas: false,
-      aniopas: false,
+      patriarca: {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: 'Actual',
+                data: [],
+                backgroundColor: ['rgba(0,0,255,.3)'],
+                borderColor: [],
+                borderWidth: 3
+              },
+              {
+                label: 'Actual-1',
+                data: [],
+                backgroundColor: ['rgba(255,255,0,.3)'],
+                borderColor: [],
+                borderWidth: 3
+              },
+              {
+                label: 'Actual-2',
+                data: [],
+                backgroundColor: ['rgba(255,0,0,.3)'],
+                borderColor: [],
+                borderWidth: 3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            lineTension: 1,
+            aspectRatio: 4,
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true,
+                  padding: 25,
+                }
+              }]
+            }
+          }
+      },
+      navGrafico: 0,
       feels: [],
       dialog: false,
-      grafico: [],
-      grafico1: [],
-      grafico2: [],
-      grafico3: [],
       headers: [
         {
           text: 'Fecha',
@@ -153,7 +156,7 @@
         },
         { text: 'Feel', value: 'feel' },
         { text: 'Descripción', value: 'plus' },
-        { text: 'Verbo', array: 'verb' },
+        { text: 'Verbo', value: 'verb' },
         { text: 'Acciones', value: 'actions', sortable: false },
       ],
       editedIndex: -1,
@@ -164,32 +167,9 @@
       }
     }),
     computed: {
+      ...mapState(['tareas']),
       formTitle () {
         return this.editedIndex === -1 ? 'Añadir Feel' : 'Editar Feel'
-      },
-      value () {
-        return this.grafico.map(element => element.feel)
-      },
-      labels () {
-        return this.grafico.map(element => element.date)
-      },
-      value1 () {
-        return this.grafico1.map(element => element.feel)
-      },
-      labels1 () {
-        return this.grafico1.map(element => element.date)
-      },
-      value2 () {
-        return this.grafico2.map(element => element.feel)
-      },
-      labels2 () {
-        return this.grafico2.map(element => element.date)
-      },
-      value3 () {
-        return this.grafico3.map(element => element.feel)
-      },
-      labels3 () {
-        return this.grafico3.map(element => element.date)
       }
     },
     watch: {
@@ -201,8 +181,17 @@
       this.lsFeels()
     },
     methods: {
-      lsFeels() {
-        this.axios.get('/feel')
+      async createChart(chartId, chartData) {
+        const ctx = await document.getElementById(chartId);
+        const myChart = await new Chart(ctx, {
+          type: chartData.type,
+          data: chartData.data,
+          options: chartData.options,
+          myChart: myChart
+        });
+      },
+      async lsFeels() {
+        await this.axios.get('/feel')
           .then(res => {
             this.feels = res.data
           })
@@ -252,40 +241,12 @@
         }
         this.close()
       },
-      obtenerGrafico1() {
-        this.grafico1 = []
-        let date = new Date()
-        date.setDate(date.getDate()-1)
-
-        let temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate())
-
-        Object.assign(this.grafico1, this.funfun(0, 23, 11, 13, temp))
-      },
-      obtenerGrafico2() {
-        this.grafico2 = []
-        let date = new Date()
-        date.setDate(date.getDate()-7)
-
-        let temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate())
-
-        Object.assign(this.grafico2, this.funfun(0, 23, 11, 13, temp))
-
-      },
-      obtenerGrafico3() {
-        this.grafico3 = []
-        let date = new Date()
-        date.setMonth(date.getMonth()-1)
-
-        let temp = this.feels.filter(element => element.date.substring(8, 10) == date.getDate() && element.date.substring(5, 7) == date.getMonth())
-        
-        Object.assign(this.grafico3, this.funfun(0, 23, 11, 13, temp))
-        
-      },
       generarGrafico(key) {
         this.navGrafico = key
-        this.grafico = []
         let diaTemp = ''
         let temp = []
+        let tempDate = []
+        let tempFeel = []
 
         key!==2 ? [this.ayer=false, this.mespas=false, this.sempas=false] : null
 
@@ -300,39 +261,47 @@
               let hora = this.feels[i].date.substring(11, 13)
               let min = this.feels[i].date.substring(14, 16)
               diaTemp === dia ? diaPrint = `${hora}:${min}` : [diaPrint = `${dia}/${mes}-${hora}hs`, diaTemp = dia]
-              this.grafico.push({ date: diaPrint, feel: this.feels[i].feel})
+              tempDate.push(this.feels[i].feel)
+              tempFeel.push(diaPrint)
             }
+              this.patriarca.data.datasets[0].data = tempDate
+              this.patriarca.data.labels = tempFeel
+              this.createChart('canvas-chart', this.patriarca)
 
             break
           
           case 2:
 
-            temp = this.feels.filter(element => element.date.substring(8, 10) == new Date().getDate())
-            Object.assign(this.grafico, this.funfun(0, 23, 11, 13, temp))
-
+            for (let i = 0; i < 3; i++) {
+              temp = this.feels.filter(element => element.date.substring(8, 10) == new Date(new Date().setDate(new Date().getDate() - i)).getDate())
+              this.funfun(0, 23, 11, 13, temp, i)
+            }
             break
             
             case 3:
               
-            temp = this.feels.filter(element => element.date.substring(5, 7) == new Date().getMonth()+1)
-            Object.assign(this.grafico, this.funfun(1, 31, 8, 10, temp))
-
-            break
+              for (let i = 0; i < 3; i++) {
+                temp = this.feels.filter(element => element.date.substring(5, 7) == new Date(new Date().setMonth(new Date().getMonth()-i)).getMonth()+1)
+                this.funfun(1, 31, 8, 10, temp, i)
+              }
+              break
 
             case 4:
               
-            temp = this.feels.filter(element => element.date.substring(5, 7) == new Date().getMonth()+1)
-            Object.assign(this.grafico, this.funfun(1, 12, 5, 7, temp))
-
+              for (let i = 0; i < 3; i++) {
+                temp = this.feels.filter(element => element.date.substring(5, 7) == new Date(new Date().setMonth(new Date().getMonth()-i)).getMonth()+1)
+                this.funfun(1, 12, 5, 7, temp, i)
+              }
             break
 
           default:
           break;
         }
       },
-      funfun(start, final, subI, subF, temp) {
-        let jiji = []
-
+      funfun(start, final, subI, subF, temp, datasetsIndex) {
+        let tempDate = []
+        let tempFeel = []
+        
         for (let i = start; i <= final; i++) {
           let sum = 0
           let cont = 0
@@ -345,9 +314,13 @@
           let prom = 0
           cont != 0 ? prom = parseInt(sum/cont, 10) : null;
           i < 10 ? i = '0'+i : null;
-          jiji.push({ date: i, feel: prom })
+          tempFeel.push(prom)
+          tempDate.push(i)
         }
-        return jiji
+          this.patriarca.data.datasets[datasetsIndex].data = tempFeel
+          this.patriarca.data.labels = tempDate
+
+          this.createChart('canvas-chart', this.patriarca)
       }
     }
   }

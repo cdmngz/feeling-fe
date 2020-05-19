@@ -4,38 +4,21 @@
       app
       color="primary"
       dark
+      flat
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="@/assets/Windows.svg"
-          transition="scale-transition"
-          width="40"
-        />
+      <h3 class="mx-4">Feels</h3>
 
-      </div>
-
-      <h3 class="mr-5">Feels</h3>
-
-      <router-link class="white--text mx-2" to="/">Home</router-link> |
-      <router-link class="white--text mx-2" to="/about">Verbos</router-link> |
-      <router-link class="white--text mx-2" to="/feel">Feels</router-link>
+      <v-tabs>
+        <v-tab to="/">Dashboard</v-tab>
+        <v-tab to="/about">Verbos</v-tab>
+        <v-tab to="/feel">Feelings</v-tab>
+      </v-tabs>
 
       <v-spacer></v-spacer>
-
-      <v-btn
-        href="#"
-        target=""
-        text
-      >
-        <span class="mr-2">LogIn</span>
-        <v-icon>mdi-heart</v-icon>
-      </v-btn>
+      
     </v-app-bar>
 
-    <v-content class="container">
+    <v-content class="mt-7">
       <router-view/>
     </v-content>
   </v-app>
